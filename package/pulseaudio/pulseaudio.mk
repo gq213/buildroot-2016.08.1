@@ -13,7 +13,11 @@ PULSEAUDIO_LICENSE_FILES = LICENSE GPL LGPL
 PULSEAUDIO_CONF_OPTS = \
 	--disable-default-build-tests \
 	--disable-legacy-database-entry-format \
-	--disable-manpages
+	--disable-manpages \
+	--disable-oss-output \
+	--disable-oss-wrapper \
+	--disable-esound \
+	--disable-ipv6
 
 # Make sure we don't detect libatomic_ops. Indeed, since pulseaudio
 # requires json-c, which needs 4 bytes __sync builtins, there should
@@ -144,7 +148,11 @@ endef
 
 define PULSEAUDIO_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 755 package/pulseaudio/S50pulseaudio \
-		$(TARGET_DIR)/etc/init.d/S50pulseaudio
+		$(TARGET_DIR)/etc/init.d/S38pulseaudio
+
+	mkdir -p $(TARGET_DIR)/var/lib
+	rm -rf $(TARGET_DIR)/var/lib/pulse
+	ln -sf /tmp/pulse $(TARGET_DIR)/var/lib/pulse
 endef
 
 define PULSEAUDIO_INSTALL_INIT_SYSTEMD

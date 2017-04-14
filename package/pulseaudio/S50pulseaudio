@@ -3,16 +3,19 @@
 # Starts pulseaudio.
 #
 
+# Create needed directories.
+[ -d /var/run/pulse ] || mkdir -p /var/run/pulse
+[ -d /var/lib/pulse ] || mkdir -p /var/lib/pulse
 
 start() {
 	printf "Starting pulseaudio: "
 	umask 077
-	/usr/bin/pulseaudio --system --daemonize
+	/usr/bin/pulseaudio --system --daemonize --disallow-exit --disallow-module-loading --disable-shm --exit-idle-time=-1
 	echo "OK"
 }
 stop() {
 	printf "Stopping pulseaudio: "
-	pulseaudio --kill
+	killall pulseaudio
 	echo "OK"
 }
 restart() {

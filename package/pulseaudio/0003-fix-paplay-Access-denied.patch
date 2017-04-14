@@ -1,0 +1,12 @@
+diff -urN a/src/daemon/system.pa.in b/src/daemon/system.pa.in
+--- a/src/daemon/system.pa.in	2016-05-03 14:17:39.000000000 +0800
++++ b/src/daemon/system.pa.in	2016-11-21 23:08:38.928628167 +0800
+@@ -43,7 +43,7 @@
+ .ifexists module-esound-protocol-unix@PA_SOEXT@
+ load-module module-esound-protocol-unix
+ .endif
+-load-module module-native-protocol-unix
++load-module module-native-protocol-unix auth-anonymous=1
+ 
+ ### Automatically restore the volume of streams and devices
+ load-module module-stream-restore
