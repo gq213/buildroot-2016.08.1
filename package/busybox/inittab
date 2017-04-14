@@ -14,7 +14,7 @@
 # process   == program to run
 
 # Startup the system
-::sysinit:/bin/mount -t proc proc /proc
+::sysinit:/bin/mount -t tmpfs tmpfs /dev
 ::sysinit:/bin/mount -o remount,rw /
 ::sysinit:/bin/mkdir -p /dev/pts
 ::sysinit:/bin/mkdir -p /dev/shm
@@ -24,7 +24,7 @@
 ::sysinit:/etc/init.d/rcS
 
 # Put a getty on the serial port
-#ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100 # GENERIC_SERIAL
+console::askfirst:-/bin/sh
 
 # Stuff to do for the 3-finger salute
 #::ctrlaltdel:/sbin/reboot
@@ -32,4 +32,4 @@
 # Stuff to do before rebooting
 ::shutdown:/etc/init.d/rcK
 ::shutdown:/sbin/swapoff -a
-::shutdown:/bin/umount -a -r
+::shutdown:/bin/umount -a -r -t notmpfs
