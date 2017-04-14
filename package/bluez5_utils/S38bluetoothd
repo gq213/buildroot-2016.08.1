@@ -1,0 +1,22 @@
+#!/bin/sh
+
+case "$1" in
+    start)
+	echo "Starting bluetoothd: "
+	/usr/libexec/bluetooth/bluetoothd -n -d &
+	echo "OK"
+	;;
+    stop)
+	echo "Stopping bluetoothd: "
+	killall bluetoothd
+	echo "OK"
+	;;
+    restart)
+	$0 stop
+	$0 start
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+	;;
+esac

@@ -25,3 +25,7 @@ for i in /etc/init.d/S??* ;do
     esac
 done
 
+if [ -e "/sys/class/bluetooth/hci0" ]; then
+	/etc/hotplug/bt_dongle_insert
+fi
+

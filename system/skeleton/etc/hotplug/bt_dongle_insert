@@ -1,0 +1,15 @@
+#!/bin/sh
+
+
+if [ ! $MDEV ]; then
+	HCI="hci0"
+else
+	HCI=$MDEV
+fi
+
+echo "bt dongle insert!($HCI)" > /dev/console
+
+hciconfig $HCI up
+hciconfig $HCI piscan
+
+echo "bt up!($HCI)" > /dev/console

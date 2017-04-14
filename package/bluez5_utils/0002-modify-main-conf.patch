@@ -1,0 +1,60 @@
+diff -urN a/Makefile.am b/Makefile.am
+--- a/Makefile.am	2016-03-18 10:18:03.000000000 +0800
++++ b/Makefile.am	2017-04-14 23:05:04.015577674 +0800
+@@ -35,7 +35,7 @@
+ dbus_DATA = src/bluetooth.conf
+ 
+ confdir = $(sysconfdir)/bluetooth
+-conf_DATA =
++conf_DATA = src/main.conf
+ 
+ statedir = $(localstatedir)/lib/bluetooth
+ state_DATA =
+diff -urN a/Makefile.in b/Makefile.in
+--- a/Makefile.in	2016-04-05 06:22:37.000000000 +0800
++++ b/Makefile.in	2017-04-14 23:05:06.321648985 +0800
+@@ -2244,7 +2244,7 @@
+ @DATAFILES_TRUE@dbusdir = @DBUS_CONFDIR@/dbus-1/system.d
+ @DATAFILES_TRUE@dbus_DATA = src/bluetooth.conf
+ @DATAFILES_TRUE@confdir = $(sysconfdir)/bluetooth
+-@DATAFILES_TRUE@conf_DATA = 
++@DATAFILES_TRUE@conf_DATA = src/main.conf
+ @DATAFILES_TRUE@statedir = $(localstatedir)/lib/bluetooth
+ @DATAFILES_TRUE@state_DATA = 
+ @SYSTEMD_TRUE@systemdsystemunitdir = @SYSTEMD_SYSTEMUNITDIR@
+diff -urN a/src/main.conf b/src/main.conf
+--- a/src/main.conf	2015-09-28 20:16:53.000000000 +0800
++++ b/src/main.conf	2017-04-14 23:06:30.535253145 +0800
+@@ -2,7 +2,7 @@
+ 
+ # Default adaper name
+ # Defaults to 'BlueZ X.YZ'
+-#Name = BlueZ
++Name = BlueZ-CSR
+ 
+ # Default device class. Only the major and minor device class bits are
+ # considered. Defaults to '0x000000'.
+@@ -11,7 +11,7 @@
+ # How long to stay in discoverable mode before going back to non-discoverable
+ # The value is in seconds. Default is 180, i.e. 3 minutes.
+ # 0 = disable timer, i.e. stay discoverable forever
+-#DiscoverableTimeout = 0
++DiscoverableTimeout = 0
+ 
+ # How long to stay in pairable mode before going back to non-discoverable
+ # The value is in seconds. Default is 0.
+@@ -64,7 +64,7 @@
+ # 'false'.
+ #FastConnectable = false
+ 
+-#[Policy]
++[Policy]
+ #
+ # The ReconnectUUIDs defines the set of remote services that should try
+ # to be reconnected to in case of a link loss (link supervision
+@@ -86,4 +86,4 @@
+ # AutoEnable defines option to enable all controllers when they are found.
+ # This includes adapters present on start as well as adapters that are plugged
+ # in later on. Defaults to 'false'.
+-#AutoEnable=false
++AutoEnable=false
