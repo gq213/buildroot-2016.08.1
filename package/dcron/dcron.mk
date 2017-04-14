@@ -24,7 +24,7 @@ define DCRON_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m0644 $(@D)/extra/root.crontab $(TARGET_DIR)/etc/cron.d/system
 	# Busybox provides run-parts, so there is no need to use nor install provided run-cron
 	$(SED) 's#/usr/sbin/run-cron#/bin/run-parts#g' $(TARGET_DIR)/etc/cron.d/system
-	$(INSTALL) -d -m0755 $(TARGET_DIR)/var/spool/cron/crontabs \
+	$(INSTALL) -d -m0755 $(TARGET_DIR)/etc/cron/crontabs \
 		$(TARGET_DIR)/etc/cron.daily $(TARGET_DIR)/etc/cron.hourly \
 		$(TARGET_DIR)/etc/cron.monthly $(TARGET_DIR)/etc/cron.weekly
 endef
