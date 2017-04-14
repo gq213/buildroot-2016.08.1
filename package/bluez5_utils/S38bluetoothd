@@ -4,10 +4,14 @@ case "$1" in
     start)
 	echo "Starting bluetoothd: "
 	/usr/libexec/bluetooth/bluetoothd -n -d &
+	sleep 1
+	agent --adapter hci0 --path /test/agent 0000 &
 	echo "OK"
 	;;
     stop)
 	echo "Stopping bluetoothd: "
+	killall agent
+	sleep 1
 	killall bluetoothd
 	echo "OK"
 	;;
