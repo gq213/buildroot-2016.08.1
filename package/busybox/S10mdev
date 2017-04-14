@@ -6,6 +6,7 @@
 case "$1" in
   start)
 	echo "Starting mdev..."
+	mkdir -p /var/run/media/udisk /var/run/media/sdcard
 	echo /sbin/mdev >/proc/sys/kernel/hotplug
 	/sbin/mdev -s
 	echo "mdev done."

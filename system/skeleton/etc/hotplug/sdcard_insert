@@ -1,0 +1,9 @@
+#!/bin/sh
+
+
+echo "sdcard insert!($MDEV)" > /dev/console
+
+if [ -e "/dev/$MDEV" ]; then
+	mkdir -p /media/sdcard/$MDEV
+	mount /dev/$MDEV /media/sdcard/$MDEV
+fi

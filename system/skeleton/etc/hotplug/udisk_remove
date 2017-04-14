@@ -1,0 +1,7 @@
+#!/bin/sh
+
+
+echo "udisk remove!($MDEV)" > /dev/console
+
+umount -l /media/udisk/$MDEV*
+rm -rf /media/udisk/$MDEV*
