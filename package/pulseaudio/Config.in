@@ -29,6 +29,12 @@ config BR2_PACKAGE_PULSEAUDIO_DAEMON
 	  recommended way of using PulseAudio unless you are building a
 	  headless system.
 
+config BR2_PACKAGE_PULSEAUDIO_BLUEZ_AUDIO
+	bool "bluez audio support"
+	select BR2_PACKAGE_SBC
+	help
+	  BlueZ audio support
+
 endif
 
 comment "pulseaudio needs a toolchain w/ wchar, threads, dynamic library"

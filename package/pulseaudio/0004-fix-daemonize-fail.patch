@@ -1,0 +1,12 @@
+diff -urN a/src/daemon/default.pa.in b/src/daemon/default.pa.in
+--- a/src/daemon/default.pa.in	2016-05-03 14:17:39.000000000 +0800
++++ b/src/daemon/default.pa.in	2017-04-09 22:59:31.780501221 +0800
+@@ -141,7 +141,7 @@
+ ### If autoexit on idle is enabled we want to make sure we only quit
+ ### when no local session needs us anymore.
+ .ifexists module-console-kit@PA_SOEXT@
+-load-module module-console-kit
++#load-module module-console-kit
+ .endif
+ .ifexists module-systemd-login@PA_SOEXT@
+ load-module module-systemd-login

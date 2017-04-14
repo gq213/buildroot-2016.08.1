@@ -36,9 +36,23 @@ PULSEAUDIO_DEPENDENCIES = \
 	$(if $(BR2_PACKAGE_AVAHI_DAEMON),avahi) \
 	$(if $(BR2_PACKAGE_DBUS),dbus) \
 	$(if $(BR2_PACKAGE_BLUEZ_UTILS),bluez_utils) \
+	$(if $(BR2_PACKAGE_BLUEZ5_UTILS),bluez5_utils) \
 	$(if $(BR2_PACKAGE_OPENSSL),openssl) \
 	$(if $(BR2_PACKAGE_FFTW),fftw) \
-	$(if $(BR2_PACKAGE_SYSTEMD),systemd)
+	$(if $(BR2_PACKAGE_SYSTEMD),systemd) \
+	$(if $(BR2_PACKAGE_SBC),sbc)
+
+ifeq ($(BR2_PACKAGE_PULSEAUDIO_BLUEZ_AUDIO),y)
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS),y)
+PULSEAUDIO_CONF_OPTS += --disable-bluez4
+PULSEAUDIO_CONF_OPTS += --enable-bluez5
+PULSEAUDIO_CONF_OPTS += --disable-bluez5-ofono-headset
+PULSEAUDIO_CONF_OPTS += --disable-bluez5-native-headset
+else
+PULSEAUDIO_CONF_OPTS += --disable-bluez4
+PULSEAUDIO_CONF_OPTS += --disable-bluez5
+endif
+endif
 
 ifeq ($(BR2_PACKAGE_GDBM),y)
 PULSEAUDIO_CONF_OPTS += --with-database=gdbm
