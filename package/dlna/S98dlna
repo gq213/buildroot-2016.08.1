@@ -1,0 +1,24 @@
+#!/bin/sh
+
+case "$1" in
+    start)
+	echo "Starting dms."
+	/usr/bin/dms /media &
+	echo "Starting dmr."
+	/usr/bin/dmr &
+	;;
+    stop)
+	echo "Stopping dms."
+	killall dms
+	echo "Stopping dmr."
+	killall dmr
+	;;
+    restart)
+	$0 stop
+	$0 start
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+	;;
+esac

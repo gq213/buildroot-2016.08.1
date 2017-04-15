@@ -1,0 +1,24 @@
+diff -urN a/Platinum/Source/Tests/FileMediaServer/FileMediaServerTest.cpp b/Platinum/Source/Tests/FileMediaServer/FileMediaServerTest.cpp
+--- a/Platinum/Source/Tests/FileMediaServer/FileMediaServerTest.cpp	2016-10-29 17:11:01.000000000 +0800
++++ b/Platinum/Source/Tests/FileMediaServer/FileMediaServerTest.cpp	2016-11-20 17:42:41.791476821 +0800
+@@ -48,7 +48,7 @@
+ 
+ bool run_flag = true;
+ 
+-#define UUID "/tmp/DmsUuid"
++#define UUID "/etc/dlna/DmsUuid"
+ 
+ /*----------------------------------------------------------------------
+ |   globals
+diff -urN a/Platinum/Source/Tests/MediaRenderer/MediaRendererTest.cpp b/Platinum/Source/Tests/MediaRenderer/MediaRendererTest.cpp
+--- a/Platinum/Source/Tests/MediaRenderer/MediaRendererTest.cpp	2016-10-29 17:11:01.000000000 +0800
++++ b/Platinum/Source/Tests/MediaRenderer/MediaRendererTest.cpp	2016-11-20 17:43:01.898070757 +0800
+@@ -46,7 +46,7 @@
+ bool run_flag = true;
+ PLT_MediaRenderer* pRender = NULL;
+ 
+-#define UUID "/tmp/DmrUuid"
++#define UUID "/etc/dlna/DmrUuid"
+ 
+ /*----------------------------------------------------------------------
+ |   globals

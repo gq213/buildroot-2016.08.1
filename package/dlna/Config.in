@@ -1,0 +1,8 @@
+config BR2_PACKAGE_DLNA
+	bool "dlna"
+	depends on BR2_INSTALL_LIBSTDCPP
+	help
+	  DLNA contains dmr and dms.
+
+comment "dlna support needs a toolchain w/ C++"
+	depends on !BR2_INSTALL_LIBSTDCPP
