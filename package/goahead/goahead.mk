@@ -14,6 +14,7 @@ define GOAHEAD_BUILD_CMDS
 		ME_COM_MBEDTLS=0 \
 		ME_COM_SSL=0 \
 		CC="$(TARGET_CROSS)gcc" \
+		LIBS=-ljson-c \
 		-C $(@D)
 endef
 
@@ -32,6 +33,10 @@ define GOAHEAD_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/web/favicon.ico
 	$(INSTALL) -D -m 755 package/goahead/web/index.html \
 		$(TARGET_DIR)/web/index.html
+	$(INSTALL) -D -m 755 package/goahead/web/control.jst \
+		$(TARGET_DIR)/web/control.jst
+	$(INSTALL) -D -m 755 package/goahead/web/main.css \
+		$(TARGET_DIR)/web/main.css
 endef
 
 $(eval $(generic-package))

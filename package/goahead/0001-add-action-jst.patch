@@ -1,0 +1,395 @@
+diff -urN a/src/action.c b/src/action.c
+--- a/src/action.c	2016-06-03 05:36:43.000000000 +0800
++++ b/src/action.c	2016-11-11 22:03:46.295622664 +0800
+@@ -16,6 +16,13 @@
+ 
+ static WebsHash actionTable = -1;            /* Symbol table for actions */
+ 
++static void set_radio_handle(Webs *wp);
++static void del_radio_handle(Webs *wp);
++static void add_radio_handle(Webs *wp);
++static void play_radio_handle(Webs *wp);
++static void stop_radio_handle(Webs *wp);
++static void get_time_handle(Webs *wp);
++
+ /************************************* Code ***********************************/
+ /*
+     Process an action request. Returns 1 always to indicate it handled the URL
+@@ -92,6 +99,12 @@
+ PUBLIC void websActionOpen()
+ {
+     actionTable = hashCreate(WEBS_HASH_INIT);
++    websDefineAction("radio_set", set_radio_handle);
++    websDefineAction("radio_del", del_radio_handle);
++    websDefineAction("radio_add", add_radio_handle);
++    websDefineAction("radio_play", play_radio_handle);
++    websDefineAction("radio_stop", stop_radio_handle);
++    websDefineAction("time_get", get_time_handle);
+     websDefineHandler("action", 0, actionHandler, closeAction, 0);
+ }
+ 
+@@ -119,6 +132,274 @@
+ }
+ #endif
+ 
++
++#define RADIO_LIST	"/etc/radio.list"
++
++
++static int set_index(char* uid)
++{
++	struct json_object *root_object = NULL;
++
++	// read radio list
++	root_object = json_object_from_file(RADIO_LIST);
++	if(root_object == NULL)
++	{
++		printf("read root_object error!\n");
++		return -1;
++	}
++
++	// set radio
++	json_object_object_del(root_object, "index");
++	json_object_object_add(root_object, "index", json_object_new_string_len(uid, strlen(uid)));
++
++	// save radio list
++	json_object_to_file(RADIO_LIST, root_object);
++
++	json_object_put(root_object);
++	return 0;
++}
++
++
++static int delete_radio(char* uid)
++{
++	struct json_object *root_object = NULL;
++
++	// read radio list
++	root_object = json_object_from_file(RADIO_LIST);
++	if(root_object == NULL)
++	{
++		printf("read root_object error!\n");
++		return -1;
++	}
++
++	// find radio
++	struct json_object *delete_object = NULL;
++	delete_object = json_object_object_get(root_object, uid);
++	if(delete_object == NULL)
++	{
++		printf("read delete_object error!\n");
++		json_object_put(root_object);
++		return -1;
++	}
++
++	// delete radio
++	json_object_object_del(root_object, uid);
++
++	struct json_object *size_object = NULL;
++	int size = 0;
++	size_object = json_object_object_get(root_object, "size");
++	size = json_object_get_int(size_object);
++	size -= 1;
++	json_object_object_del(root_object, "size");
++	json_object_object_add(root_object, "size", json_object_new_int(size));
++
++	// save radio list
++	json_object_to_file(RADIO_LIST, root_object);
++
++	json_object_put(root_object);
++	return 0;
++}
++
++
++static unsigned int generate_rand(void)
++{
++	int fd;
++	unsigned int n = 0;
++
++	fd = open("/dev/urandom", O_RDONLY);
++	if(fd == -1)
++		printf("open /dev/urandom fail!\n");
++	else
++	{
++		read(fd, &n, sizeof(n));
++		close(fd);
++	}
++
++	return n;
++}
++
++
++static int save_radio(char* name, char* url)
++{
++	struct json_object *root_object = NULL;
++	struct json_object *size_object = NULL;
++	int size = 0;
++	char uid[16];
++	int len;
++	
++	len = sprintf(uid, "uid%08x", generate_rand());
++
++	// read radio list
++	root_object = json_object_from_file(RADIO_LIST);
++	if(root_object == NULL)
++	{
++		printf("read root_object error!\n");
++
++		// creat radio list
++		root_object = json_object_new_object();
++
++		json_object_object_add(root_object, "index", json_object_new_string_len(uid, len));
++		size = 1;
++	}
++	else
++	{
++		size_object = json_object_object_get(root_object, "size");
++		size = json_object_get_int(size_object);
++
++		if(size >= 20)
++		{
++			printf("the tasks is reach max!\n");
++			json_object_put(root_object);
++			return -1;
++		}
++
++		json_object_object_del(root_object, "size");
++		size += 1;
++	}
++
++	// add radio
++	struct json_object *radio_object = NULL;
++	radio_object = json_object_new_object();
++	json_object_object_add(radio_object, "name", json_object_new_string_len(name, strlen(name)));
++	json_object_object_add(radio_object, "url", json_object_new_string_len(url, strlen(url)));
++
++	json_object_object_add(root_object, uid, radio_object);
++
++	json_object_object_add(root_object, "size", json_object_new_int(size));
++
++	// save radio list
++	json_object_to_file(RADIO_LIST, root_object);
++
++	json_object_put(root_object);
++	return 0;
++}
++
++
++/*
++file:///action/radio_set?uid=uid2
++*/
++static void set_radio_handle(Webs *wp)
++{
++	char* uid;
++	int ret;
++
++	assert(websValid(wp));
++
++	uid = websGetVar(wp, "uid", "");
++
++	ret = set_index(uid);
++	if(ret == 0)
++		websRedirectByStatus(wp, HTTP_CODE_OK);
++	else
++		websRedirectByStatus(wp, HTTP_CODE_INTERNAL_SERVER_ERROR);
++}
++
++
++/*
++file:///action/radio_del?uid=uid2
++*/
++static void del_radio_handle(Webs *wp)
++{
++	char* uid;
++	int ret;
++
++	assert(websValid(wp));
++
++	uid = websGetVar(wp, "uid", "");
++
++	ret = delete_radio(uid);
++	if(ret == 0)
++		websRedirectByStatus(wp, HTTP_CODE_OK);
++	else
++		websRedirectByStatus(wp, HTTP_CODE_INTERNAL_SERVER_ERROR);
++}
++
++
++/*
++file:///action/radio_add?name=1&url=http%3A%2F%2Ftest
++*/
++static void add_radio_handle(Webs *wp)
++{
++	char* name;
++	char* url;
++	int ret;
++
++	assert(websValid(wp));
++
++	name = websGetVar(wp, "name", "");
++	url = websGetVar(wp, "url", "");
++
++	ret = save_radio(name, url);
++	if(ret == 0)
++		websRedirectByStatus(wp, HTTP_CODE_OK);
++	else
++		websRedirectByStatus(wp, HTTP_CODE_INTERNAL_SERVER_ERROR);
++}
++
++
++/*
++file:///action/radio_play?name=n2&url=h2
++*/
++static void play_radio_handle(Webs *wp)
++{
++	char buf[1024];
++	char* url;
++
++	assert(websValid(wp));
++
++	url = websGetVar(wp, "url", "");
++	snprintf(buf, sizeof(buf), 
++		"echo \"loadfile %s\" > /tmp/mplayer-infifo", url);
++	printf("cmd=%s\n", buf);
++	system(buf);
++
++	websRedirectByStatus(wp, HTTP_CODE_OK);
++}
++
++
++/*
++file:///action/radio_stop?name=n2&url=h2
++*/
++static void stop_radio_handle(Webs *wp)
++{
++	system("echo \"stop\" > /tmp/mplayer-infifo");
++
++	websRedirectByStatus(wp, HTTP_CODE_OK);
++}
++
++
++/*
++GET /action/time_get?id=0.5160490522364486 HTTP/1.1
++*/
++static void get_time_handle(Webs *wp)
++{
++	static const char *week[] = {
++	"日", "一", "二", "三", "四", "五", "六"
++	};
++	time_t t;
++	struct tm *p;
++	char buf[32];
++	int len;
++
++	assert(websValid(wp));
++
++	websSetStatus(wp, 200);
++
++	t = time(NULL);
++	p = localtime(&t);
++	len = snprintf(buf, sizeof(buf), 
++		"%04d-%02d-%02d %s %02d:%02d:%02d", 
++		p->tm_year+1900, p->tm_mon+1, p->tm_mday, week[p->tm_wday], 
++		p->tm_hour, p->tm_min, p->tm_sec);
++	//printf("time=%s.\n", buf);
++
++	websWriteHeaders(wp, len, 0);
++	websWriteEndHeaders(wp);
++	websWriteBlock(wp, buf, len);
++	
++	websDone(wp);
++}
++
+ /*
+     Copyright (c) Embedthis Software. All Rights Reserved.
+     This software is distributed under commercial and open source licenses.
+diff -urN a/src/jst.c b/src/jst.c
+--- a/src/jst.c	2016-06-03 05:36:43.000000000 +0800
++++ b/src/jst.c	2016-11-11 22:03:48.047584424 +0800
+@@ -19,6 +19,8 @@
+ static char *strtokcmp(char *s1, char *s2);
+ static char *skipWhite(char *s);
+ 
++static void get_radio_list(int jid, Webs *wp, int argc, char **argv);
++
+ /************************************* Code ***********************************/
+ /*
+     Process requests and expand all scripting commands. We read the entire web page into memory and then process. If
+@@ -177,6 +179,7 @@
+ {
+     websJstFunctions = hashCreate(WEBS_HASH_INIT * 2);
+     websDefineJst("write", websJstWrite);
++    websDefineJst("radio", get_radio_list);
+     websDefineHandler("jst", 0, jstHandler, closeJst, 0);
+     return 0;
+ }
+@@ -251,6 +254,69 @@
+     return s;
+ }
+ 
++
++static char* get_list(const char *path)
++{
++	// size
++	struct stat statbuff;  
++    	if(stat(path, &statbuff) < 0)
++	{  
++        	printf("%s: not found file %s 0.\n", __FUNCTION__, path);
++		return NULL;
++    	}
++	else
++	{  
++        	//printf("%s: filesize:%d.\n", __FUNCTION__, (int)statbuff.st_size);
++    	} 
++
++	// malloc
++	char *readbuf = (char *)malloc((statbuff.st_size+1) * sizeof(char));
++	if(readbuf == NULL)
++	{
++		printf("%s: malloc error.\n", __FUNCTION__);
++		return NULL;
++	}
++
++	// read
++	FILE *fp = NULL;
++	fp = fopen(path, "r");
++    	if(fp)
++    	{
++		fread(readbuf, statbuff.st_size, 1, fp);
++		fclose(fp);
++		readbuf[statbuff.st_size] = '\0';
++
++		return readbuf;
++	}
++	else
++	{
++		printf("%s: not found file 1.\n", __FUNCTION__);
++		// free
++		free(readbuf);
++		return NULL;
++	}
++}
++
++
++#define RADIO_LIST	"/etc/radio.list"
++
++
++static void get_radio_list(int jid, Webs *wp, int argc, char **argv) 
++{
++	char* list;
++
++	assert(websValid(wp));
++	
++	list = get_list(RADIO_LIST);
++	if(list)
++	{
++		websWrite(wp, "var list = %s;", list);
++		free(list);
++	}
++	else
++		websWrite(wp, "var list = \"\";");
++}
++
+ #endif /* ME_GOAHEAD_JAVASCRIPT */
+ 
+ /*

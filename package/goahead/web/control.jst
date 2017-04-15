@@ -1,0 +1,276 @@
+<html>
+
+<head>
+<title>Radio</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="main.css" type="text/css"/>
+</head>
+
+<script type="text/javascript">
+<!--
+
+function doSubmit_play()
+{
+	var url = document.getElementById("play_url").value;
+
+	if(url == "")
+	{
+		alert("url can't empty!");
+		return false;
+	}
+
+	var form = document.getElementById("radio_control");
+
+	var myselect = document.getElementById("play_option");
+	var index = myselect.selectedIndex;
+	var value = myselect.options[index].value;
+
+	if(value == "play")
+		form.action = "/action/radio_play";
+	else
+		form.action = "/action/radio_stop";
+
+	form.submit();
+}
+
+function doSubmit_edit()
+{
+	var obj = document.getElementsByName("uid");
+
+	for(var i=0; i<obj.length; i++)
+	{
+		if(obj[i].checked == true)
+		{
+			//alert(obj[i].value);
+			break;
+		}
+	}
+	if(i == obj.length)
+	{
+		alert("no item checked!");
+		return false;
+	}
+
+	var form = document.getElementById("radio_edit");
+
+	var myselect = document.getElementById("edit_option");
+	var index = myselect.selectedIndex;
+	var value = myselect.options[index].value;
+
+	//alert(value);
+	if(value == "default")
+		form.action = "/action/radio_set";
+	else
+		form.action = "/action/radio_del";
+
+	form.submit();
+}
+
+function doSubmit_add()
+{
+	var name = document.getElementById("radio_name").value;
+	var url = document.getElementById("radio_url").value;
+
+	if(name == "")
+	{
+		alert("name can't empty!");
+		return false;
+	}
+	if(url == "")
+	{
+		alert("url can't empty!");
+		return false;
+	}
+
+	document.getElementById("radio_add").submit();
+}
+
+function table_add_radio(_index, _uid, _name, _url, _checked)
+{
+	var newTr = document.getElementById("radio_list").insertRow(1 + _index);
+	var newTd0 = newTr.insertCell(0);
+	var newTd1 = newTr.insertCell(1);
+	var newTd2 = newTr.insertCell(2);
+	var newTd3 = newTr.insertCell(3);
+
+	if(_checked)
+	{
+		//newTd0.innerHTML= '<input type="radio" name="uid" value=' + _uid + ' checked="checked" />';
+		document.getElementById("play_name").value = _name;
+		document.getElementById("play_url").value = _url;
+	}
+
+	newTd0.innerHTML= '<input type="radio" name="uid" value=' + _uid + ' />';
+	newTd1.innerHTML= _index;
+	newTd2.innerHTML= _name;
+	newTd3.innerHTML= _url;
+}
+
+function pageinit()
+{
+	<% radio(); %>
+
+	if(list == "" || list.size == "0")
+	{
+		document.getElementById("edit_option").disabled = true;
+		document.getElementById("edit_submit").disabled = true;
+		//alert("list empty!");
+		return false;
+	}
+
+	document.getElementById("edit_option").disabled = false;
+	document.getElementById("edit_submit").disabled = false;
+
+	//alert(list.size);
+	//alert(list.index);
+	var index = list.index;
+
+	var i = 1;
+	for(var key in list)
+	{
+		if(key != "size" && key != "index")
+		{
+			//alert(key);
+			if(key == index)
+				table_add_radio(i, key, list[key].name, list[key].url, true);
+			else
+				table_add_radio(i, key, list[key].name, list[key].url, false);
+			i++;
+		}
+	}
+}
+
+//-->
+</script>
+
+<body onload="pageinit()">
+
+<body>
+
+	<table border="0" width="80%" align="center" bordercolor="#A5A79F" cellpadding="10" cellspacing="2">
+		<tr>
+			<td colspan="2" align="center" bgcolor="#CD950C"><div class="h1">GoAhead</div></td>
+		</tr>
+		<tr>
+			<td width="50%" align="center" bgcolor="#48D1CC">
+				<a href="index.html" style="color:blue;text-decoration:none;">
+					<div class="h2">Home</div>
+				</a>
+			</td>
+			<td width="50%" align="center" bgcolor="#A5A79F"><div class="h2">Radio</div></td>
+		</tr>	
+	</table>
+
+	<p>&nbsp;</p>
+
+<form id="radio_control" method="get" action="">
+	<table border="0" width="80%" align="center" bordercolor="#A5A79F" cellpadding="5" cellspacing="0">
+
+		<tr bgcolor="#A5A79F">
+			<td colspan="4" align="center"><div class="h3">Radio Control</div></td>
+		</tr>
+
+		<tr>
+			<td width="20%" align="left">
+				<div>
+				name:
+				<input id="play_name" name="name" type="text" style="width: 100%; overflow: visible" value=""/>
+				</div>
+			</td>
+			<td width="80%" align="left">
+				<div>
+				url:
+				<input id="play_url" name="url" type="text" style="width: 100%; overflow: visible" value=""/>
+				</div>
+			</td>
+		</tr>
+
+		<tr>
+			<td colspan="4" align="center">
+				<div>
+				<select id="play_option">
+					<option value="play">Play</option>
+					<option value="stop">Stop</option>
+				</select>
+				<input type="button" value="Submit" onclick="doSubmit_play()"/>
+				</div>
+			</td>
+		</tr>
+
+	</table>
+</form>
+
+	<p>&nbsp;</p>
+
+<form id="radio_edit" method="get" action="">
+	<table id="radio_list" border="0" width="80%" align="center" bordercolor="#A5A79F" cellpadding="5" cellspacing="0">
+
+		<tr bgcolor="#A5A79F">
+			<td colspan="4" align="center"><div class="h3">Radio Edit</div></td>
+		</tr>
+
+		<tr>
+			<td width="5%" align="left"><div></div></td>
+			<td width="5%" align="left"><div></div></td>
+			<td width="10%" align="left"><div>name</div></td>
+			<td width="80%" align="left"><div>url</div></td>
+		</tr>
+
+		<tr>
+			<td colspan="4" align="center">
+				<div>
+				<select id="edit_option">
+					<option value="default">Default</option>
+					<option value="delete">Delete</option>
+				</select>
+				<input type="button" id="edit_submit" value="Submit" onclick="doSubmit_edit()"/>
+				</div>
+			</td>
+		</tr>
+
+	</table>
+</form>
+
+	<p>&nbsp;</p>
+
+<form id="radio_add" method="get" action="/action/radio_add">
+	<table border="0" width="80%" align="center" bordercolor="#A5A79F" cellpadding="5" cellspacing="0">
+
+		<tr bgcolor="#A5A79F">
+			<td colspan="4" align="center"><div class="h3">Radio Add</div></td>
+		</tr>
+
+		<tr>
+			<td width="20%" align="left">
+				<div>
+				name:
+				<input id="radio_name" name="name" type="text" style="width: 100%; overflow: visible" value=""/>
+				</div>
+			</td>
+			<td width="80%" align="left">
+				<div>
+				url:
+				<input id="radio_url" name="url" type="text" style="width: 100%; overflow: visible" value=""/>
+				</div>
+			</td>
+		</tr>
+
+		<tr>
+			<td colspan="4" align="center">
+				<div>
+				<input type="button" value="Add" onclick="doSubmit_add()"/>
+				</div>
+			</td>
+		</tr>
+
+	</table>
+</form>
+
+	<p>&nbsp;</p>
+	
+	<p align="center"><span>Copyright &copy; 2016 GaoQiang. All rights reserved.</span></p>
+
+</body>
+
+</html>

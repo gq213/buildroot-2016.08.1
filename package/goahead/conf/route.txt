@@ -32,6 +32,11 @@
 #   Standard routes
 #
 route uri=/cgi-bin dir=cgi-bin handler=cgi
+route uri=/action/radio_set methods=GET handler=action redirect=200@/control.jst redirect=500@/test.jst
+route uri=/action/radio_del methods=GET handler=action redirect=200@/control.jst redirect=500@/test.jst
+route uri=/action/radio_add methods=GET handler=action redirect=200@/control.jst redirect=500@/test.jst
+route uri=/action/radio_play methods=GET handler=action redirect=200@/control.jst redirect=500@/test.jst
+route uri=/action/radio_stop methods=GET handler=action redirect=200@/control.jst redirect=500@/test.jst
 route uri=/action handler=action
 route uri=/ extensions=jst handler=jst
 route uri=/ methods=OPTIONS|TRACE handler=options
