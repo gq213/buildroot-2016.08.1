@@ -1,0 +1,4 @@
+config BR2_PACKAGE_RT3070
+	bool "rt3070"
+	help
+	  usb wifi dongle.

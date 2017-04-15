@@ -653,6 +653,8 @@ endif
 # debugging symbols.
 	find $(TARGET_DIR)/lib -type f -name 'ld-*.so*' | \
 		xargs -r $(STRIPCMD) $(STRIP_STRIP_DEBUG)
+	find $(TARGET_DIR)/lib/modules -type f -name '*.ko' | \
+		xargs -r $(STRIPCMD) $(STRIP_STRIP_DEBUG)
 	test -f $(TARGET_DIR)/etc/ld.so.conf && \
 		{ echo "ERROR: we shouldn't have a /etc/ld.so.conf file"; exit 1; } || true
 	test -d $(TARGET_DIR)/etc/ld.so.conf.d && \

@@ -1,0 +1,80 @@
+diff -urN a/Makefile b/Makefile
+--- a/Makefile	2012-10-22 11:52:59.000000000 +0800
++++ b/Makefile	2017-04-12 20:51:43.000000000 +0800
+@@ -9,7 +9,7 @@
+ endif
+ 
+ ifeq ($(CHIPSET),)
+-CHIPSET = 5572 3573 3572 2870 5370
++CHIPSET = 3070
+ endif
+ 
+ MODULE = $(word 1, $(CHIPSET))
+@@ -27,7 +27,7 @@
+ RTMP_SRC_DIR = $(RT28xx_DIR)/RT$(MODULE)
+ 
+ #PLATFORM: Target platform
+-PLATFORM = PC
++#PLATFORM = PC
+ #PLATFORM = 5VT
+ #PLATFORM = IKANOS_V160
+ #PLATFORM = IKANOS_V180
+@@ -46,7 +46,7 @@
+ #PLATFORM = CMPC
+ #PLATFORM = RALINK_2880
+ #PLATFORM = RALINK_3052
+-#PLATFORM = SMDK
++PLATFORM = SMDK
+ #PLATFORM = RMI
+ #PLATFORM = RMI_64
+ #PLATFORM = KODAK_DC
+@@ -267,8 +267,8 @@
+ endif
+ 
+ ifeq ($(PLATFORM),SMDK)
+-LINUX_SRC = /home/bhushan/itcenter/may28/linux-2.6-samsung
+-CROSS_COMPILE = /usr/local/arm/4.2.2-eabi/usr/bin/arm-linux-
++LINUX_SRC ?= /home/bhushan/itcenter/may28/linux-2.6-samsung
++CROSS_COMPILE ?= /usr/local/arm/4.2.2-eabi/usr/bin/arm-linux-
+ endif
+ 
+ ifeq ($(PLATFORM),RALINK_3352)
+@@ -392,7 +392,7 @@
+ ifeq ($(PLATFORM),FREESCALE8377)
+ 	$(MAKE) ARCH=powerpc CROSS_COMPILE=$(CROSS_COMPILE) -C  $(LINUX_SRC) SUBDIRS=$(RT28xx_DIR)/os/linux modules
+ else
+-	$(MAKE) -C $(LINUX_SRC) SUBDIRS=$(RT28xx_DIR)/os/linux modules
++	$(MAKE) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) -C $(LINUX_SRC) SUBDIRS=$(RT28xx_DIR)/os/linux modules
+ endif
+ endif
+ 
+@@ -417,7 +417,7 @@
+ 	cp -f $(RT28xx_DIR)/os/linux/rtnet$(MODULE)apsta.ko /tftpboot
+ endif
+ else
+-	cp -f $(RT28xx_DIR)/os/linux/rt$(MODULE)sta.ko /tftpboot
++	cp -f $(RT28xx_DIR)/os/linux/rt$(MODULE)sta.ko $(RT28xx_DIR)/
+ ifeq ($(OSABL),YES)
+ 	cp -f $(RT28xx_DIR)/os/linux/rtutil$(MODULE)sta.ko /tftpboot
+ 	cp -f $(RT28xx_DIR)/os/linux/rtnet$(MODULE)sta.ko /tftpboot
+diff -urN a/os/linux/config.mk b/os/linux/config.mk
+--- a/os/linux/config.mk	2012-10-22 11:52:59.000000000 +0800
++++ b/os/linux/config.mk	2017-04-12 22:08:40.000000000 +0800
+@@ -23,7 +23,7 @@
+ 
+ # Support Wpa_Supplicant
+ # i.e. wpa_supplicant -Dralink
+-HAS_WPA_SUPPLICANT=n
++HAS_WPA_SUPPLICANT=y
+ 
+ 
+ # Support Native WpaSupplicant for Network Maganger
+@@ -32,7 +32,7 @@
+ # what if user want to use wpa_supplicant to serve P2P function/feature, 
+ # in case, it must use Ralink Propriectary wpa_supplicant to do.
+ # and this compile flag will report P2P Related Event to Ralink wpa_supplicant.
+-HAS_NATIVE_WPA_SUPPLICANT_SUPPORT=n
++HAS_NATIVE_WPA_SUPPLICANT_SUPPORT=y
+ 
+ #Support Net interface block while Tx-Sw queue full
+ HAS_BLOCK_NET_IF=n
