@@ -1,0 +1,5 @@
+config BR2_PACKAGE_GOAHEAD
+	bool "goahead"
+	select BR2_PACKAGE_JSON_C
+	help
+	  HTTP Server.
