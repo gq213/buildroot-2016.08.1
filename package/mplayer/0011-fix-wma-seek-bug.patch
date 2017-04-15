@@ -1,0 +1,58 @@
+diff -urN a/stream/asf_streaming.c b/stream/asf_streaming.c
+--- a/stream/asf_streaming.c	2016-02-14 23:33:24.000000000 +0800
++++ b/stream/asf_streaming.c	2016-11-01 15:30:55.000000000 +0800
+@@ -721,7 +721,8 @@
+ 		http_free( http_hdr );
+ 		http_hdr = http_new_header();
+ 		do {
+-			i = recv( fd, buffer, BUFFER_SIZE, 0 );
++			memset(buffer, 0x0, sizeof(buffer));
++			i = recv( fd, buffer, sizeof(buffer)-1, 0 );
+ //printf("read: %d\n", i );
+ 			if( i<=0 ) {
+ 				perror("read");
+@@ -729,6 +730,17 @@
+ 			}
+ 			http_response_append( http_hdr, buffer, i );
+ 		} while( !http_is_header_entire( http_hdr ) );
++
++		//printf("http_hdr->buffer=\n%s\n", http_hdr->buffer);
++
++		if( (strstr(http_hdr->buffer, "Kugou") != NULL) ||
++			(strstr(http_hdr->buffer, "Microsoft") != NULL) ||
++			(strstr(http_hdr->buffer, "Bubble") != NULL) )
++		{
++			printf("kugou/Microsoft/Bubble music!!!\n");
++			goto err_out;
++		}
++
+ 		if( mp_msg_test(MSGT_NETWORK,MSGL_V) ) {
+ 			http_hdr->buffer[http_hdr->buffer_size]='\0';
+ 			mp_msg(MSGT_NETWORK,MSGL_DBG2,"Response [%s]\n", http_hdr->buffer );
+diff -urN a/stream/http.c b/stream/http.c
+--- a/stream/http.c	2013-03-18 06:47:17.000000000 +0800
++++ b/stream/http.c	2016-11-01 10:57:46.000000000 +0800
+@@ -745,8 +745,8 @@
+ 		    const char *server = http_get_field(http_hdr, "Server");
+ 		    if (accept_ranges)
+ 			seekable = strncmp(accept_ranges,"bytes",5)==0;
+-		    else if (server && (strcmp(server, "gvs 1.0") == 0 ||
+-		                        strncmp(server, "MakeMKV", 7) == 0)) {
++		    else if (server /*&& (strcmp(server, "gvs 1.0") == 0 ||
++		                        strncmp(server, "MakeMKV", 7) == 0)*/) {
+ 			// HACK for youtube and MakeMKV incorrectly claiming not to support seeking
+ 			mp_msg(MSGT_NETWORK, MSGL_WARN, "Broken webserver, incorrectly claims to not support Accept-Ranges\n");
+ 			seekable = 1;
+diff -urN a/stream/network.c b/stream/network.c
+--- a/stream/network.c	2015-10-18 07:28:29.000000000 +0800
++++ b/stream/network.c	2016-11-01 15:31:00.000000000 +0800
+@@ -331,6 +331,9 @@
+ 		}
+ 		http_response_append( http_hdr, response, i );
+ 	} while( !http_is_header_entire( http_hdr ) );
++
++	//printf("response:\n%s\n", http_hdr->buffer);
++
+ 	if (http_response_parse( http_hdr ) < 0) {
+ 		http_free( http_hdr );
+ 		return NULL;

@@ -1,0 +1,12 @@
+diff -urN a/configure b/configure
+--- a/configure	2017-02-06 17:57:05.848855000 +0800
++++ b/configure	2017-02-07 10:22:41.107769622 +0800
+@@ -6442,7 +6442,7 @@
+ 
+ echocheck "zlib"
+ _zlib=no
+-statement_check zlib.h 'inflate(0, Z_NO_FLUSH)' -lz && _zlib=yes
++#statement_check zlib.h 'inflate(0, Z_NO_FLUSH)' -lz && _zlib=yes
+ if test "$_zlib" = yes ; then
+   def_zlib='#define CONFIG_ZLIB 1'
+   extra_ldflags="$extra_ldflags -lz"

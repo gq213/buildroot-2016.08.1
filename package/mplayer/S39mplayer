@@ -1,0 +1,22 @@
+#!/bin/sh
+
+case "$1" in
+    start)
+	echo "Starting mplayer."
+	mkfifo /tmp/mplayer-infifo
+	mplayer -quiet -slave -idle -ao alsa -input file=/tmp/mplayer-infifo -cache 512 -cache-min 10 &
+	;;
+    stop)
+	echo "Stopping mplayer."
+	killall mplayer
+	rm -rf /tmp/mplayer-infifo
+	;;
+    restart)
+	$0 stop
+	$0 start
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+	;;
+esac

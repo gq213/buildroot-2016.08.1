@@ -1,0 +1,93 @@
+diff -urN a/command.c b/command.c
+--- a/command.c	2016-02-13 03:47:26.000000000 +0800
++++ b/command.c	2016-10-27 11:33:17.000000000 +0800
+@@ -2594,6 +2594,7 @@
+     sh_audio_t * const sh_audio = mpctx->sh_audio;
+     sh_video_t * const sh_video = mpctx->sh_video;
+     int brk_cmd = 0;
++    char buf[12];
+     if (!set_property_command(mpctx, cmd))
+         switch (cmd->id) {
+         case MP_CMD_SEEK:{
+@@ -3218,8 +3219,11 @@
+             break;
+ 
+         case MP_CMD_GET_TIME_LENGTH:{
+-                mp_msg(MSGT_GLOBAL, MSGL_INFO, "ANS_LENGTH=%.2f\n",
+-                       demuxer_get_time_length(mpctx->demuxer));
++                //mp_msg(MSGT_GLOBAL, MSGL_INFO, "ANS_LENGTH=%.2f\n",
++                //       demuxer_get_time_length(mpctx->demuxer));
++                int len = demuxer_get_time_length(mpctx->demuxer);
++                snprintf(buf, sizeof(buf), "len=%d", len);
++                out_ack(buf);
+             }
+             break;
+ 
+@@ -3365,7 +3369,9 @@
+                     pos =
+                         playing_audio_pts(sh_audio, mpctx->d_audio,
+                                           mpctx->audio_out);
+-                mp_msg(MSGT_GLOBAL, MSGL_INFO, "ANS_TIME_POSITION=%.1f\n", pos);
++                //mp_msg(MSGT_GLOBAL, MSGL_INFO, "ANS_TIME_POSITION=%.1f\n", pos);
++                snprintf(buf, sizeof(buf), "pos=%d", (int)pos);
++                out_ack(buf);
+             }
+             break;
+ 
+diff -urN a/mplayer.c b/mplayer.c
+--- a/mplayer.c	2016-02-14 22:37:58.000000000 +0800
++++ b/mplayer.c	2016-10-27 11:35:40.000000000 +0800
+@@ -3147,6 +3147,7 @@
+         }
+         switch (cmd->id) {
+         case MP_CMD_LOADFILE:
++            mp_msg(MSGT_CPLAYER, MSGL_INFO, "loadfile\n");
+             // prepare a tree entry with the new filename
+             entry = play_tree_new();
+             play_tree_add_file(entry, cmd->args[0].v.s);
+@@ -3981,6 +3982,7 @@
+                 mp_cmd_t *cmd;
+                 int brk_cmd = 0;
+                 while (!brk_cmd && (cmd = mp_input_get_cmd(0, 0, 0)) != NULL) {
++                    //mp_msg(MSGT_CPLAYER, MSGL_INFO, "ack\n");
+                     brk_cmd = run_command(mpctx, cmd);
+                     if (cmd->id == MP_CMD_EDL_LOADFILE) {
+                         free(edl_filename);
+@@ -4162,6 +4164,8 @@
+         if (!mpctx->playtree_iter && !use_gui)
+             filename = NULL;
+         mpctx->eof = 0;
++        mp_msg(MSGT_CPLAYER, MSGL_INFO, "over\n");
++        out_ack("over");
+         goto play_next_file;
+     }
+ 
+@@ -4170,3 +4174,18 @@
+ }
+ 
+ #endif /* DISABLE_MAIN */
++
++#define OUTPUT "/tmp/mplayer-ack"
++void out_ack(char *data)
++{
++	FILE *fp = NULL;
++
++	fp = fopen(OUTPUT, "w");
++	if(fp)
++	{
++		fwrite(data, strlen(data), 1, fp);
++		fclose(fp);
++	}
++	else
++		printf("%s: save %s error.\n", __FUNCTION__, OUTPUT);
++}
+diff -urN a/mplayer.h b/mplayer.h
+--- a/mplayer.h	2013-03-30 16:42:57.000000000 +0800
++++ b/mplayer.h	2016-10-27 11:08:21.000000000 +0800
+@@ -49,4 +49,6 @@
+ 
+ void update_set_of_subtitles(void);
+ 
++void out_ack(char *data);
++
+ #endif /* MPLAYER_MPLAYER_H */

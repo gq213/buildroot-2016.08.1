@@ -1,0 +1,14 @@
+diff -urN a/configure b/configure
+--- a/configure	2017-04-10 21:46:34.863417000 +0800
++++ b/configure	2017-04-10 22:08:45.214410000 +0800
+@@ -2833,7 +2833,9 @@
+ fi
+ 
+ CFLAGS="-D_ISOC99_SOURCE -I. -Iffmpeg $CFLAGS"
+-HOSTCFLAGS="-D_ISOC99_SOURCE -I. -Iffmpeg -O3"
++CUR_DIR=$(pwd)
++TMP_STR=$(echo ${CUR_DIR%/mplayer*})
++HOSTCFLAGS="-D_ISOC99_SOURCE -I. -I${TMP_STR}/ffmpeg3-3.0 -O3"
+ 
+ # On glibc, add some more CPPFLAGS for enabling required functionality.
+ cpp_condition_check features.h "defined __GLIBC__" &&
