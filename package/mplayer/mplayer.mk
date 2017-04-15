@@ -9,6 +9,7 @@ MPLAYER_SOURCE = MPlayer-$(MPLAYER_VERSION).tar.xz
 MPLAYER_SITE = http://www.mplayerhq.hu/MPlayer/releases
 MPLAYER_DEPENDENCIES = host-pkgconf ffmpeg3
 MPLAYER_DEPENDENCIES += $(if $(BR2_PACKAGE_ALSA_LIB),alsa-lib)
+MPLAYER_DEPENDENCIES += $(if $(BR2_PACKAGE_PULSEAUDIO),pulseaudio)
 MPLAYER_LICENSE = GPLv2
 MPLAYER_LICENSE_FILES = LICENSE Copyright
 MPLAYER_CFLAGS = $(TARGET_CFLAGS)
@@ -56,7 +57,7 @@ define MPLAYER_CONFIGURE_CMDS
 		\
 		--disable-ossaudio \
 		--enable-alsa \
-		--disable-pulse \
+		--enable-pulse \
 	)
 endef
 
@@ -69,5 +70,12 @@ define MPLAYER_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 package/mplayer/S39mplayer \
 		$(TARGET_DIR)/etc/init.d/S39mplayer
 endef
+
+ifeq ($(BR2_PACKAGE_PULSEAUDIO),y)
+define MPLAYER_OUTPUT_TO_PULSE
+	sed -i '7s/alsa/pulse/g' $(TARGET_DIR)/etc/init.d/S39mplayer
+endef
+TARGET_FINALIZE_HOOKS += MPLAYER_OUTPUT_TO_PULSE
+endif
 
 $(eval $(generic-package))
