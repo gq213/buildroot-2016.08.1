@@ -10,7 +10,7 @@
 start() {
 	printf "Starting pulseaudio: "
 	umask 077
-	/usr/bin/pulseaudio -v &
+	/usr/bin/pulseaudio --exit-idle-time=-1 -v &
 	echo "OK"
 }
 stop() {

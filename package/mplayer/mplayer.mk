@@ -71,11 +71,4 @@ define MPLAYER_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/etc/init.d/S39mplayer
 endef
 
-ifeq ($(BR2_PACKAGE_PULSEAUDIO),y)
-define MPLAYER_OUTPUT_TO_PULSE
-	sed -i '7s/alsa/pulse/g' $(TARGET_DIR)/etc/init.d/S39mplayer
-endef
-TARGET_FINALIZE_HOOKS += MPLAYER_OUTPUT_TO_PULSE
-endif
-
 $(eval $(generic-package))
