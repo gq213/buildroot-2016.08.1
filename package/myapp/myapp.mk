@@ -26,6 +26,12 @@ define INSTALL_MY_FILES
 		$(TARGET_DIR)/etc/cron/crontabs/root
 	$(INSTALL) -D -m 0644 package/myapp/conf/radio.list \
 		$(TARGET_DIR)/etc/radio.list
+	$(INSTALL) -D -m 0644 package/myapp/firmwares/rt3070/rt2870.bin \
+		$(TARGET_DIR)/lib/firmware/rt2870.bin
+	$(INSTALL) -D -m 0755 package/myapp/scripts/wifi-status \
+		$(TARGET_DIR)/etc/wifi-status
+	$(INSTALL) -D -m 0755 package/myapp/scripts/S40wifi \
+		$(TARGET_DIR)/etc/init.d/S40wifi
 endef
 TARGET_FINALIZE_HOOKS += INSTALL_MY_FILES
 

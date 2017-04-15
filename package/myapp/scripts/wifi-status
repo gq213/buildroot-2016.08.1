@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# wpa_cli -iwlan0 -a/etc/wifi-status -B &
+#
+
+echo "wifi-status: $0 $1 $2" > /dev/console
+
+case "$2" in
+  CONNECTED)
+	echo "wifi-status: connected" > /dev/console
+	udhcpc -b -i wlan0 -x hostname:s5pv210 -R &
+	;;
+  DISCONNECTED)
+	echo "wifi-status: disconnected" > /dev/console
+	killall udhcpc
+	;;
+esac
