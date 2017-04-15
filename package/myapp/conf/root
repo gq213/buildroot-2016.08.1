@@ -1,0 +1,1 @@
+00 07 * * * /usr/bin/radio > /dev/console
