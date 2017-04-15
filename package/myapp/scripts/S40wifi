@@ -8,7 +8,7 @@ case "$1" in
 	printf "Starting wifi: "
 	ifconfig wlan0 up
 	mkdir -p /var/run/wpa_supplicant
-	wpa_supplicant -Dnl80211 -iwlan0 -c /etc/wpa_supplicant.conf -B &
+	wpa_supplicant -Dwext -iwlan0 -c /etc/wpa_supplicant.conf -B &
 	sleep 1
 	wpa_cli -iwlan0 -a/etc/wifi-status -B &
 	echo "OK"

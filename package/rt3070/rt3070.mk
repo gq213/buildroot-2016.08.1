@@ -14,8 +14,8 @@ define RT3070_BUILD_CMDS
 endef
 
 define RT3070_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0644 $(@D)/rt3070sta.ko \
-		$(TARGET_DIR)/lib/modules/rt3070sta.ko
+	$(INSTALL) -D -m 0644 $(@D)/rt5572sta.ko \
+		$(TARGET_DIR)/lib/modules/rt5572sta.ko
 	$(INSTALL) -D -m 0644 $(@D)/RT2870STA.dat \
 		$(TARGET_DIR)/etc/Wireless/RT2870STA/RT2870STA.dat
 endef

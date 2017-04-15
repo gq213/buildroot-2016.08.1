@@ -3,6 +3,8 @@
 
 mkdir -p var/cache var/lib var/lock var/log var/run var/spool var/tmp
 
+insmod /lib/modules/rt5572sta.ko
+
 # Start all init scripts in /etc/init.d
 # executing them in numerical order.
 #

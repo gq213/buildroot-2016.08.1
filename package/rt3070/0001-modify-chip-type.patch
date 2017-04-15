@@ -1,15 +1,6 @@
 diff -urN a/Makefile b/Makefile
 --- a/Makefile	2012-10-22 11:52:59.000000000 +0800
-+++ b/Makefile	2017-04-12 20:51:43.000000000 +0800
-@@ -9,7 +9,7 @@
- endif
- 
- ifeq ($(CHIPSET),)
--CHIPSET = 5572 3573 3572 2870 5370
-+CHIPSET = 3070
- endif
- 
- MODULE = $(word 1, $(CHIPSET))
++++ b/Makefile	2017-04-16 00:22:55.783832000 +0800
 @@ -27,7 +27,7 @@
  RTMP_SRC_DIR = $(RT28xx_DIR)/RT$(MODULE)
  
@@ -59,7 +50,7 @@ diff -urN a/Makefile b/Makefile
  	cp -f $(RT28xx_DIR)/os/linux/rtnet$(MODULE)sta.ko /tftpboot
 diff -urN a/os/linux/config.mk b/os/linux/config.mk
 --- a/os/linux/config.mk	2012-10-22 11:52:59.000000000 +0800
-+++ b/os/linux/config.mk	2017-04-12 22:08:40.000000000 +0800
++++ b/os/linux/config.mk	2017-04-16 01:06:01.133663000 +0800
 @@ -23,7 +23,7 @@
  
  # Support Wpa_Supplicant
@@ -78,3 +69,12 @@ diff -urN a/os/linux/config.mk b/os/linux/config.mk
  
  #Support Net interface block while Tx-Sw queue full
  HAS_BLOCK_NET_IF=n
+@@ -113,7 +113,7 @@
+ 
+ 
+ #Support ANDROID_SUPPORT
+-HAS_ANDROID_SUPPORT=n
++HAS_ANDROID_SUPPORT=y
+ 
+ #HAS_IFUP_IN_PROBE_SUPPORT
+ HAS_IFUP_IN_PROBE_SUPPORT=n
