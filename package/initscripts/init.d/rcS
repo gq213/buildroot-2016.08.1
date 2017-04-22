@@ -33,3 +33,6 @@ if [ -e "/sys/class/bluetooth/hci0" ]; then
 	/etc/hotplug/bt_dongle_insert
 fi
 
+if [ -e "/sys/class/net/wlan0" ]; then
+	/etc/hotplug/wifi_dongle_insert
+fi

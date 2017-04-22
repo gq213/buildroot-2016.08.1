@@ -31,7 +31,7 @@ define INSTALL_MY_FILES
 	$(INSTALL) -D -m 0755 package/myapp/scripts/wifi-status \
 		$(TARGET_DIR)/etc/wifi-status
 	$(INSTALL) -D -m 0755 package/myapp/scripts/S40wifi \
-		$(TARGET_DIR)/etc/init.d/S40wifi
+		$(TARGET_DIR)/etc/wifi
 endef
 TARGET_FINALIZE_HOOKS += INSTALL_MY_FILES
 
