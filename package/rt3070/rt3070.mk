@@ -8,7 +8,7 @@ RT3070_SOURCE = DPO_RT5572_LinuxSTA_2.6.1.3_20121022.tar.bz2
 RT3070_SITE = localhost
 
 define RT3070_BUILD_CMDS
-	$(MAKE) LINUX_SRC="/home/work/210-dev/final/kernel/linux-3.10.105" \
+	$(MAKE) LINUX_SRC="$(@D)/../../../../linux-3.10.105" \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 	-C $(@D)
 endef
