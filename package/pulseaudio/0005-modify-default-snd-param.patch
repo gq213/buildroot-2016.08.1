@@ -1,0 +1,14 @@
+diff -urN a/src/daemon/daemon.conf.in b/src/daemon/daemon.conf.in
+--- a/src/daemon/daemon.conf.in	2016-06-01 18:50:54.000000000 +0800
++++ b/src/daemon/daemon.conf.in	2017-10-28 17:27:43.724877624 +0800
+@@ -83,8 +83,8 @@
+ ; default-sample-channels = 2
+ ; default-channel-map = front-left,front-right
+ 
+-; default-fragments = 4
+-; default-fragment-size-msec = 25
++default-fragments = 16
++default-fragment-size-msec = 46
+ 
+ ; enable-deferred-volume = yes
+ ; deferred-volume-safety-margin-usec = 8000
