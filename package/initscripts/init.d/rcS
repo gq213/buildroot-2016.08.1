@@ -1,7 +1,8 @@
 #!/bin/sh
 
 
-mkdir -p var/cache var/lib var/lock var/log var/run var/spool var/tmp
+mkdir -p /var/cache /var/lib /var/lock /var/log /var/run /var/spool /var/tmp
+mkdir -p /var/lib/misc /var/lib/alsa
 
 insmod /lib/modules/rt5572sta.ko
 

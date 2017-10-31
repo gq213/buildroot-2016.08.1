@@ -471,7 +471,7 @@ static int unregister_agent(DBusConnection *conn, const char *adapter_path,
 }
 
 /* Version number of package */
-#define VERSION "5.43"
+#define VERSION "5.39"
 static void usage(void)
 {
 	printf("Bluetooth agent ver %s\n\n", VERSION);

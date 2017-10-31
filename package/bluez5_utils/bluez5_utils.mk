@@ -77,7 +77,7 @@ BLUEZ5_UTILS_CONF_OPTS += --disable-systemd
 endif
 
 define BLUEZ5_UTILS_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 0755 package/bluez5_utils/S38bluetoothd \
+	$(INSTALL) -D -m 755 package/bluez5_utils/S38bluetoothd \
 		$(TARGET_DIR)/etc/init.d/S38bluetoothd
 endef
 
