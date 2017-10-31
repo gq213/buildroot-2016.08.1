@@ -1,0 +1,125 @@
+diff -urN a/tools/hciconfig.c b/tools/hciconfig.c
+--- a/tools/hciconfig.c	2015-10-30 11:30:13.000000000 +0800
++++ b/tools/hciconfig.c	2017-10-31 11:46:48.000000000 +0800
+@@ -242,6 +242,13 @@
+ 	struct hci_request rq;
+ 	le_set_advertise_enable_cp advertise_cp;
+ 	le_set_advertising_parameters_cp adv_params_cp;
++	le_set_advertising_data_cp adv_data_cp;
++	uint8_t adv_data[32] = {0x02, 0x01, 0x1a, 0x02, 0x0a, 0x08, 
++				16, 0x09, 
++				0xE4, 0xBD, 0x8E, 0xE5, 0x8A, 0x9F, 0xE8, 0x80, 0x97, 
++				0xE8, 0x93, 0x9D, 0xE7, 0x89, 0x99, '\0'};
++	le_set_scan_response_data_cp resp_data_cp;
++	uint8_t resp_data[32] = {0x04, 0xff, 0x39, 0x38, 0x37, '\0'};
+ 	uint8_t status;
+ 	int dd, ret;
+ 
+@@ -255,11 +262,12 @@
+ 	}
+ 
+ 	memset(&adv_params_cp, 0, sizeof(adv_params_cp));
+-	adv_params_cp.min_interval = htobs(0x0800);
+-	adv_params_cp.max_interval = htobs(0x0800);
++	adv_params_cp.min_interval = htobs(0x0040);
++	adv_params_cp.max_interval = htobs(0x0056);
+ 	if (opt)
+ 		adv_params_cp.advtype = atoi(opt);
+ 	adv_params_cp.chan_map = 7;
++	adv_params_cp.own_bdaddr_type = LE_RANDOM_ADDRESS;
+ 
+ 	memset(&rq, 0, sizeof(rq));
+ 	rq.ogf = OGF_LE_CTL;
+@@ -270,8 +278,15 @@
+ 	rq.rlen = 1;
+ 
+ 	ret = hci_send_req(dd, &rq, 1000);
+-	if (ret < 0)
++	if (ret < 0) {
++		printf("adv_params error on hci%d: %s (%d)\n",
++						hdev, strerror(errno), errno);
++		goto done;
++	}
++	if (status) {
++		printf("adv_params error returned status %d\n", status);
+ 		goto done;
++	}
+ 
+ 	memset(&advertise_cp, 0, sizeof(advertise_cp));
+ 	advertise_cp.enable = 0x01;
+@@ -285,20 +300,70 @@
+ 	rq.rlen = 1;
+ 
+ 	ret = hci_send_req(dd, &rq, 1000);
++	if (ret < 0) {
++		printf("advertise error on hci%d: %s (%d)\n",
++						hdev, strerror(errno), errno);
++		goto done;
++	}
++	if (status) {
++		printf("advertise error returned status %d\n", status);
++		goto done;
++	}
++
++	memset(&adv_data_cp, 0, sizeof(adv_data_cp));
++	adv_data_cp.length = strlen(adv_data);
++	memcpy(adv_data_cp.data, adv_data, adv_data_cp.length);
++
++	memset(&rq, 0, sizeof(rq));
++	rq.ogf = OGF_LE_CTL;
++	rq.ocf = OCF_LE_SET_ADVERTISING_DATA;
++	rq.cparam = &adv_data_cp;
++	rq.clen = LE_SET_ADVERTISING_DATA_CP_SIZE;
++	rq.rparam = &status;
++	rq.rlen = 1;
++
++	ret = hci_send_req(dd, &rq, 1000);
++	if (ret < 0) {
++		printf("adv_data error on hci%d: %s (%d)\n",
++						hdev, strerror(errno), errno);
++		goto done;
++	}
++	if (status) {
++		printf("adv_data error returned status %d\n", status);
++		goto done;
++	}
++
++	memset(&resp_data_cp, 0, sizeof(resp_data_cp));
++	resp_data_cp.length = strlen(resp_data);
++	memcpy(resp_data_cp.data, resp_data, resp_data_cp.length);
++
++	memset(&rq, 0, sizeof(rq));
++	rq.ogf = OGF_LE_CTL;
++	rq.ocf = OCF_LE_SET_SCAN_RESPONSE_DATA;
++	rq.cparam = &resp_data_cp;
++	rq.clen = LE_SET_SCAN_RESPONSE_DATA_CP_SIZE;
++	rq.rparam = &status;
++	rq.rlen = 1;
++
++	ret = hci_send_req(dd, &rq, 1000);
++	if (ret < 0) {
++		printf("resp_data error on hci%d: %s (%d)\n",
++						hdev, strerror(errno), errno);
++		goto done;
++	}
++	if (status) {
++		printf("resp_data error returned status %d\n", status);
++		goto done;
++	}
+ 
+ done:
+ 	hci_close_dev(dd);
+ 
+ 	if (ret < 0) {
+-		fprintf(stderr, "Can't set advertise mode on hci%d: %s (%d)\n",
+-						hdev, strerror(errno), errno);
+ 		exit(1);
+ 	}
+ 
+ 	if (status) {
+-		fprintf(stderr,
+-			"LE set advertise enable on hci%d returned status %d\n",
+-								hdev, status);
+ 		exit(1);
+ 	}
+ }

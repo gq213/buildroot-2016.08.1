@@ -11,5 +11,7 @@ echo "bt dongle insert!($HCI)" > /dev/console
 
 hciconfig $HCI up
 hciconfig $HCI piscan
+hciconfig $HCI lerandaddr 00:1A:7D:DA:71:14
+hciconfig $HCI leadv 0
 
 echo "bt up!($HCI)" > /dev/console
