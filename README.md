@@ -14,9 +14,3 @@ make V=1
 
 make help
 make menuconfig
-
-
-dcron
-crontab -c /etc/cron/crontabs -e
-*/2 * * * * date > /dev/console
-crontab -c /etc/cron/crontabs -l
