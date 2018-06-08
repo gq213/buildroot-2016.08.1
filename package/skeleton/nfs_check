@@ -17,9 +17,11 @@ nfsip=`sed -n '/^[^ ]*:.* \/ nfs.*[ ,]addr=\([0-9.]\+\).*/s//\1/p' /proc/mounts`
 if [ -n "$nfsip" ] && ip route get to "$nfsip" | grep -q "dev $IFACE"; then
 	echo Skipping $IFACE, used for NFS from $nfsip
 
-	echo "reserve ip, add route and dns!"
-	/sbin/route add default gw 192.168.169.1
-	echo "nameserver 192.168.169.1 # eth0" > /etc/resolv.conf
+	gateway=`echo $nfsip | awk -F '.' '{print $1"."$2"."$3".1"}'`
+
+	echo "reserve ip, add route and dns, $gateway !"
+	/sbin/route add default gw $gateway
+	echo "nameserver $gateway # eth0" > /etc/resolv.conf
 	echo "nameserver 0.0.0.0 # eth0" >> /etc/resolv.conf
 
 	exit 1
