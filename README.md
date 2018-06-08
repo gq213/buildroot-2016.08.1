@@ -6,9 +6,6 @@ make s5pv210_defconfig
 make source
 
 3)
-make toolchain
-
-4)
 make V=1
 
 
