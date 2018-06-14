@@ -1,0 +1,11 @@
+
+logo.bmp(800*480,24bpp)
+bmptoppm logo.bmp > logo.ppm
+ppmquant 224 logo.ppm > logo_224.ppm
+pnmnoraw logo_224.ppm > logo_linux_clut224.ppm
+
+kernel/drivers/video/logo/logo_linux_clut224.ppm
+
+
+
+
