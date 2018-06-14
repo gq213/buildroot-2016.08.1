@@ -1,0 +1,84 @@
+https://code.google.com/archive/p/yaffs2utils/downloads/
+https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/yaffs2utils/0.2.9.tar.gz
+
+
+git clone git://www.aleph1.co.uk/yaffs2
+
+cd yaffs2-latest-tag/
+./patch-ker.sh c m /mnt/qiang/work/210/linux-3.4.108
+
+
+
+k9k8g08u0b SLC
+Memory Cell Array :  (1G + 32M) x 8bit
+Data Register :  (2K + 64) x 8bit
+Page Size :  (2K + 64)Byte
+Block Erase :  (128K + 4K)Byte
+
+k9f2g08u0c SLC
+Memory Cell Array : (256M + 8M) x 8bit
+Data Register :  (2K + 64) x 8bit
+Page Size :  (2K + 64)Byte
+Block Erase :  (128K + 4K)Byte
+
+
+
+NAND flash memory interface: Supports 512Bytes, 2KB, 4KB, and 8KB pages.
+ECC: Supports 1-/ 4-/ 8-/ 12-/ 16-bit ECC 
+
+ecc
+bit	512byte	2k
+4	7	28
+8	13	52
+12	20	80
+16	26	104
+
+OM[5:0]=000010
+NAND 2 KB, 5cycle (NAND 8-bit ECC)
+
+
+
+[root@buildroot /]# mtd_debug info /dev/mtd1
+mtd.type = MTD_NANDFLASH
+mtd.flags = MTD_CAP_NANDFLASH
+mtd.size = 10485760 (10M)
+mtd.erasesize = 131072 (128K)
+mtd.writesize = 2048 (2K)
+mtd.oobsize = 64 
+regions = 0
+
+[root@buildroot /]# flash_erase /dev/mtd1 0 80
+Erasing 128 Kibyte @ 9e0000 -- 100 % complete
+
+[root@buildroot /]# nanddump -p -f /root/nand.asci /dev/mtd1
+ECC failed: 0
+ECC corrected: 0
+Number of bad blocks: 0
+Number of bbt blocks: 0
+Block size 131072, page size 2048, OOB size 64
+Dumping data starting at 0x00000000 and ending at 0x00a00000...
+[root@buildroot /]# nanddump -f /root/nand.data /dev/mtd1
+ECC failed: 0
+ECC corrected: 0
+Number of bad blocks: 0
+Number of bbt blocks: 0
+Block size 131072, page size 2048, OOB size 64
+Dumping data starting at 0x00000000 and ending at 0x00a00000...
+
+写入、读取、对比raw数据
+[root@buildroot /]# nandwrite -p /dev/mtd1 /root/rootfs.yaffs2 
+[root@buildroot /]# nanddump -f /root/rootfs.data /dev/mtd1
+
+
+写入yaffs2文件系统
+mkyaffs2image_for_TQ210 target/ target.yaffs2
+flash_erase /dev/mtd1 0 80
+nandwrite -a -o /dev/mtd1 /root/target.yaffs2
+mkdir -p /tmp/root
+mount -t yaffs2 /dev/mtdblock1 /tmp/root/
+df -h
+mount -v
+ls /tmp/root/ -l
+echo "test" > /tmp/root/txt
+cat /tmp/root/txt
+umount /tmp/root/
