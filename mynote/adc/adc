@@ -1,0 +1,6 @@
+
+cd /sys/class/hwmon/hwmon0/device/
+
+adc2_raw查看通道的AD转换的原始值，
+in2_label查看ADC通道2的标题，
+in2_input查看ADC2的转换真是电压值(mV)。
