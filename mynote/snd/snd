@@ -1,0 +1,29 @@
+
+
+cat /dev/urandom > /dev/dsp
+
+aplay /root/Front_Center.wav 
+arecord -t wav -c 1 -f S16_LE -r 44100 -d 9 test.wav
+
+[root@buildroot /]# amixer contents
+numid=3,iface=MIXER,name='Headphone Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=127,step=0
+  : values=88,88
+  | dBscale-min=-121.00dB,step=1.00dB,mute=1
+numid=1,iface=MIXER,name='Capture Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=255,step=0
+  : values=195,195
+  | dBscale-min=-97.00dB,step=0.50dB,mute=1
+numid=2,iface=MIXER,name='Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=255,step=0
+  : values=255,255
+  | dBscale-min=-127.00dB,step=0.50dB,mute=1
+numid=4,iface=MIXER,name='DAC Mute'
+  ; type=BOOLEAN,access=rw------,values=1
+  : values=on
+  
+[root@buildroot /]# amixer controls
+numid=3,iface=MIXER,name='Headphone Playback Volume'
+numid=1,iface=MIXER,name='Capture Volume'
+numid=2,iface=MIXER,name='Playback Volume'
+numid=4,iface=MIXER,name='DAC Mute'
