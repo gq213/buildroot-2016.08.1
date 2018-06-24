@@ -1,0 +1,299 @@
+
+http://linux-media.vger.kernel.narkive.com/MDYAaJkv/smdkv210-support-issue-in-kernel-3-8-dma-pl330-and-hdmi-failed
+http://linux-samsung-soc.vger.kernel.narkive.com/PJBMz2z8/mfc-decode-failed-in-s5pv210-in-kernel-3-8
+
+
+This patch is against the master branch of
+git://git.infradead.org/users/kmpark/public-apps and is available in my clone
+tree at git://git.ideasonboard.org/samsung-public-apps.git.
+
+Sylwester merged it to devel branch of
+https://git.linuxtv.org/snawrocki/samsung-utils.git
+
+The branch git://git.infradead.org/users/kmpark/public-apps is obsolete
+and beyond our control.
+
+
+git://git.infradead.org/users/kmpark/public-apps
+https://git.linuxtv.org/snawrocki/samsung-utils.git
+
+
+
+https://lwn.net/Articles/449661/
+
+
+Updated RFC for TV driver:
+
+==============
+ Introduction
+==============
+
+The purpose of this RFC is to discuss the driver for a TV output interface
+available in upcoming Samsung SoC. The HW is able to generate digital and
+analog signals. Current version of the driver supports only digital output.
+
+Internally the driver uses videobuf2 framework, and DMA-CONTIG memory allocator.
+
+======================
+ Hardware description
+======================
+
+The SoC contains a few HW sub-blocks:
+
+1. Video Processor (VP). It is used for processing of NV12 data.  An image
+stored in RAM is accessed by DMA. Pixels are cropped, scaled. Additionally,
+post processing operations like brightness, sharpness and contrast adjustments
+could be performed. The output in YCbCr444 format is send to Mixer.
+
+2. Mixer (MXR). The piece of hardware responsible for mixing and blending
+multiple data inputs before passing it to an output device.  The MXR is capable
+of handling up to three image layers. One is the output of VP.  Other two are
+images in RGB format (multiple variants are supported).  The layers are scaled,
+cropped and blended with background color.  The blending factor, and layers'
+priority are controlled by MXR's registers. The output is passed either to HDMI
+or SDO.
+
+3. HDMI. The piece of HW responsible for generation of HDMI packets. It takes
+pixel data from mixer and transforms it into data frames. The output is send
+to HDMIPHY interface.
+
+4. HDMIPHY. Physical interface for HDMI. Its duties are sending HDMI packets to
+HDMI connector. Basically, it contains a PLL that produces source clock for
+Mixer, VP and HDMI during streaming.
+
+5. SDO. Generation of TV analog signal. The alternative output for the Mixer.
+It receives data and passes it to VideoDAC. The SDO is responsible for timing
+generation of analog TV signal. It supports multiple standards.
+
+6. VideoDAC. Modulator for TVOUT signal. Receives data from SDO. Converts
+it to analog domain. Next, the signal is modulated to CVBS format, amplified
+and sent to Composite Connector.
+
+The diagram below depicts connection between all HW pieces.
+                    +-----------+
+NV12 data ---dma--->|   Video   |
+                    | Processor |
+                    +-----------+
+                          |
+                          V
+                    +-----------+
+RGB data  ---dma--->|           |
+                    |   Mixer   |
+RGB data  ---dma--->|           |
+                    +-----------+
+                          |
+                          * dmux
+                         /
+                  +-----*   *------+
+                  |                |
+                  V                V
+            +-----------+    +-----------+
+            |    HDMI   |    |    SDO    |
+            +-----------+    +-----------+
+                  |                |
+                  V                V
+            +-----------+    +-----------+
+            |  HDMIPHY  |    |  VideoDAC |
+            +-----------+    +-----------+
+                  |                |
+                  V                V
+                HDMI           Composite
+             connector         connector
+
+
+==================
+ Driver interface
+==================
+
+The posted driver implements three V4L2 nodes. Every video node implements V4L2
+output buffer. One of nodes corresponds to input of Video Processor. The other
+two nodes correspond to RGB inputs of Mixer. All nodes share the same output.
+It is one of the Mixer's outputs: SDO or HDMI. Changing output in one layer
+using S_OUTPUT would change outputs of all other video nodes. The same thing
+happens if one try to reconfigure output i.e. by calling S_DV_PRESET. However
+it not possible to change or reconfigure the output while streaming. To sum up,
+all features in posted version of driver goes as follows:
+
+1. QUERYCAP
+2. S_FMT, G_FMT - multiplanar API, single planar modes must be emulated
+  a) node named video0 supports formats NV12, NV21, NV12T (tiled version of
+NV12), NV12MT (multiplane version of NV12T).
+  b) nodes named graph0 and graph1 support formats RGB565, ARGB1555, ARGB4444,
+ARGB8888.
+3. Buffer with USERPTR and MMAP memory.
+4. Streaming and buffer control. (STREAMON, STREAMOFF, REQBUF, QBUF, DQBUF)
+5. OUTPUT configurations and enumeration using VIDIOC_{ENUM/S/G}_OUTPUT.
+6. DV preset control (SET, GET, ENUM). Currently modes 480P59_94, 720P59_94,
+1080P30, 1080P59_94 and 1080P60 work.
+7. Analog standards using VIDIOC_{S_/G_/ENUM}STD. Modes PAL_N, PAL_Nc, PAL_M,
+   PAL_60, NTSC_443, PAL_BGHID, NTSC_M are supported.
+8. Positioning layer's window on output display using S_CROP, G_GROP, CROPCAP.
+9. Positioning and cropping data in buffer using S_CROP, G_GROP, CROPCAP with
+buffer type OVERLAY *. This is temporary interface and it is going to be
+substituted by SELECTION api.
+10. Support for priority api: VIDIOC_{G/S}_PRIORITY
+
+TODOs:
+- add control of alpha blending / chroma keying via V4L2 controls
+- add controls for luminance curve and sharpness in VP
+- consider exporting all output functionalities to separate video node
+- consider media controller framework
+
+* The need of cropping in source buffers came from problem with MFC driver for
+S5P. The MFC supports only width divisible by 64. If a width of a decoded movie
+is not aligned do 64 then padding pixels are filled with zeros. This is an ugly
+green color in YCbCr colorspace. Filling it with zeros by a CPU is a waste of
+resources since an image can be cropped in VP. Is it possible to set crops for
+user data for M2M devices. V4L2 lacks such functionality of non-M2M devices.
+Therefore cropping in buffer V4L2_BUF_TYPE_VIDEO_OVERLAY was used as an work
+around.
+
+=====================
+ Device Architecture
+=====================
+
+Three drivers are added in this patch.
+
+1. HDMIPHY. It is an I2C driver for HDMIPHY interface. It exports following
+callback by V4L2 subdevice:
+- s_power: currently stub
+- s_stream: configures and starts/stops HDMIPHY
+- s_dv_preset: used to choose proper frequency of clock for other TV devices
+
+2. HDMI. The auxiliary driver used to control HDMI interface. It exports its
+subdev in its private data for use by other drivers. The following callbacks are
+implemented:
+- s_power: runs HDMI hardware, regulators and clocks.
+- s_stream: runs HDMIPHY and starts generation of video frames.
+- enum_dv_presets
+- s_dv_preset
+- g_dv_preset: returns current preset used by HDMI
+- g_mbus_format: returns information on data format expected by on HDMI input
+  The driver supports an interrupt. It is used to detect plug/unplug events in
+kernel debugs.  The API for detection of such an events in V4L2 API is to be
+defined.
+
+3. SDO. The auxiliary driver used to control analog TV. It also exports its
+subdev for other drivers. The following callbacks are implemented.
+- s_power: runs TV hardware, regulators and clocks.
+- s_stream: runs TV clock and starts generation of video signal.
+- s_std_output: set configuration of TV standard from one of PAL/NTSC family
+- g_std_output: get current configuration of TV standard
+- g_tvnorms_output: used by Mixer to obtain tv standards supported by SDO
+- g_mbus_format: returns information on data format expected by on SDO input
+
+5. Mixer & Video Processor driver. It is called 's5p-mixer' because of
+historical reasons. It was decided combine VP and MXR drivers into one because
+of shared interrupt and very similar interface via V4L2 nodes. The driver is a
+realization of many-to-many relation between multiple input layers and multiple
+outputs. All shared resources are kept in struct mxr_device. It provides
+utilities for management and synchronization of access to resources and
+reference counting. The outputs are obtained from HDMI/SDO private data.  One
+layer is a single video node. Simple inheritance is applied because there only
+little difference between layer's types. Every layer type implements set of
+ops. There are different ops for Mixer layers and other for VP layer.
+
+The videobuf2 framework was used for the management of buffers and streaming.
+All other V4L2 ioctls are processed in layers common interface. The DMA-COHERENT
+was used as memory allocator for Mixer's buffers. It could be easily exchanged
+with any other allocator integrated with videobuf2 framework.
+
+===============
+ Usage summary
+===============
+
+Follow steps below to display double-buffered animation on output.
+In order to use other output please use VIDIOC_S_OUTPUT.
+
+01. Open video node named graph0.
+02. S_FMT(type = OUTPUT, pixelformat = V4L2_PIX_FMT_RGB*, width, height, ...)
+03. REQ_BUFS(type = OUTPUT, memory = MMAP, count = 2)
+04. MMAP(type = OUTPUT, index = 0)
+05. MMAP(type = OUTPUT, index = 1)
+06. Fill buffer 0 with data
+07. QBUF(type = OUTPUT, index = 0)
+08. STREAM_ON(type = OUTPUT)
+09. Fill buffer 1 with data
+10. QBUF(type = OUTPUT, index = 1)
+11. DQBUF(type = OUTPUT)
+12. QBUF(type = OUTPUT, index = 0)
+13. DQBUF(type = OUTPUT)
+14. Goto 09
+
+
+
+arm-buildroot-linux-gnueabihf-gcc -Wall main.c -o tvdemo -Ikernel/usr/include/ -std=gnu99 -lm -O2
+
+ERROR(main.c:256) : VIDIOC_DQBUF failed: Invalid argument
+
+
+
+HDMI blend alpha 配置
+https://blog.csdn.net/liujia2100/article/details/22530523
+HDMI 设置 显示分辨率和频率
+https://blog.csdn.net/liujia2100/article/details/22326853
+s5pv210 HDMI 1080P 高清显示
+https://blog.csdn.net/liujia2100/article/details/21831551
+s5pv210 HDMI 显示实现
+https://blog.csdn.net/liujia2100/article/details/21788667
+基于S5PV210的HDMI移植
+https://blog.csdn.net/NoMmmMoN/article/details/53014908
+
+1、hdmi 重启，死机，每次系统开机，只能启动一次
+1、HDMI时钟问题，关闭后，重新打开会导致系统时钟出问题，解决方法是，退出hdmi时，不关闭hdmi的时钟，下次能够正常使用；
+
+
+
+[root@buildroot ~]# ./tvdemo /dev/video7 1920 1080 0 0 
+[   66.225058] ------------[ cut here ]------------
+[   66.225148] WARNING: at drivers/media/v4l2-core/videobuf2-core.c:2077 vb2_queue_init+0x190/0x198()
+[   66.225245] Modules linked in:
+[   66.225294] CPU: 0 PID: 680 Comm: tvdemo Tainted: G        W    3.10.105 #12
+[   66.226415] [<8001359c>] (unwind_backtrace+0x0/0xec) from [<800113a4>] (show_stack+0x10/0x14)
+[   66.235948] [<800113a4>] (show_stack+0x10/0x14) from [<8001c938>] (warn_slowpath_common+0x54/0x68)
+[   66.244225] [<8001c938>] (warn_slowpath_common+0x54/0x68) from [<8001c9e8>] (warn_slowpath_null+0x1c/0x24)
+[   66.253847] [<8001c9e8>] (warn_slowpath_null+0x1c/0x24) from [<80248218>] (vb2_queue_init+0x190/0x198)
+[   66.263202] [<80248218>] (vb2_queue_init+0x190/0x198) from [<80255404>] (mxr_video_open+0xc4/0x160)
+[   66.272162] [<80255404>] (mxr_video_open+0xc4/0x160) from [<80235ab8>] (v4l2_open+0x9c/0x100)
+[   66.280599] [<80235ab8>] (v4l2_open+0x9c/0x100) from [<800a2648>] (chrdev_open+0x88/0x174)
+[   66.288826] [<800a2648>] (chrdev_open+0x88/0x174) from [<8009cf80>] (do_dentry_open+0x188/0x258)
+[   66.297577] [<8009cf80>] (do_dentry_open+0x188/0x258) from [<8009d320>] (finish_open+0x34/0x4c)
+[   66.306227] [<8009d320>] (finish_open+0x34/0x4c) from [<800aad40>] (do_last+0x3c4/0xca0)
+[   66.314310] [<800aad40>] (do_last+0x3c4/0xca0) from [<800ab6cc>] (path_openat+0xb0/0x494)
+[   66.322454] [<800ab6cc>] (path_openat+0xb0/0x494) from [<800ac7bc>] (do_filp_open+0x2c/0x88)
+[   66.330860] [<800ac7bc>] (do_filp_open+0x2c/0x88) from [<8009e1f8>] (do_sys_open+0xe0/0x174)
+[   66.339264] [<8009e1f8>] (do_sys_open+0xe0/0x174) from [<8000e080>] (ret_fast_syscall+0x0/0x38)
+[   66.347906] ---[ end trace 84db1e2abac6f552 ]---
+
+
+
+[root@buildroot ~]# ./tvdemo /dev/video0 1280 720 0 0
+0
+1
+720-480-0x34524742
+2
+[   10.997714] s5p-mixer s5p-mixer: dma_alloc_coherent of size 1384448 failed
+ERROR(main.c:106) : failed to get 3 buffers
+Aborted
+
+cma=64M
+setenv nfsboot "set bootargs noinitrd console=ttySAC0 root=/dev/nfs rw nfsroot=192.168.2.200:/mnt/qiang/work/nfs/rootfs,v3,nolock,tcp ip=192.168.2.100 init=/linuxrc cma=64M;run bootk"
+
+
+
+https://blog.csdn.net/zgyulongfei/article/details/7526249
+https://blog.csdn.net/zjc0888/article/details/6603215
+
+
+
+arm-buildroot-linux-gnueabihf-gcc -Wall hdmi_random.c -o tvdemo -std=gnu99 -lm -O2
+arm-buildroot-linux-gnueabihf-gcc -Wall hdmi_bmp.c -o hdmi_bmp -std=gnu99
+
+
+
+Supports the following video formats: 
+  480p @59.94Hz/ 60Hz, 576p @50Hz 
+  720p @50Hz/ 59.94Hz/ 60Hz 
+  1080i @50Hz/ 59.94Hz/ 60Hz 
+  1080p @25Hz/ 29.97Hz/ 30Hz 
+  Other various formats up to 74.25 MHz Pixel Clock 
