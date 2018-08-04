@@ -1,0 +1,13 @@
+
+内核启动输出：
+input: pwm-beeper as /devices/platform/pwm-beeper/input/input0
+查看设备：
+/dev/input/event0
+
+arm-buildroot-linux-gnueabihf-gcc -Wall beep_test.c -o beep_test -std=gnu99
+[root@buildroot ~]# ./beep_test /dev/input/event0 1
+1
+^C
+stop requested...
+0
+close...!
