@@ -1,0 +1,10 @@
+
+arm-buildroot-linux-gnueabihf-gcc -Wall fbinfo.c -o fbinfo -std=gnu99
+[root@buildroot ~]# ./fbinfo /dev/fb0
+width:800, height:480, bit:32
+
+gcc -Wall gen_lcd_bin.c -o gen_lcd_bin -std=gnu99
+qiang@qiang-ubuntu:root$ ./gen_lcd_bin 800 480 32 0xff0000ff
+width:800, height:480, bit:32, color_hex:0xff0000ff
+
+[root@buildroot ~]# cat 800_480_32_ff0000ff.bin  > /dev/fb0
